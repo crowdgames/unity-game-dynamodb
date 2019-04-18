@@ -1,0 +1,1 @@
+MaxAssignments 3 AssignmentsAvailable 0 Unassignable

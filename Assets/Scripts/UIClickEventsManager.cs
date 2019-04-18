@@ -9,13 +9,13 @@ public class UIClickEventsManager : MonoBehaviour
 
     private void Start()
     {
-        // playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
-        characterController = GameObject.FindGameObjectWithTag("Player").GetComponent<CharacterControllerU>();
+        playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+        // characterController = GameObject.FindGameObjectWithTag("Player").GetComponent<CharacterControllerU>();
     }
     public void ContinueButtonOnItemMisMatchUI()
     {
         //playerController.Die();
-        //playerController.StartOverAgain();
-        characterController.StartOverAgain();
+        playerController.StartOverAgain();
+        //characterController.StartOverAgain();
     }
 }

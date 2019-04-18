@@ -37,6 +37,10 @@ public class PlayerController : MonoBehaviour
     LevelManager lm;
     Logger logger;
 
+    //DB entries
+    public string level1Completion, level2Completion, level3Completion;
+    public string gameCompletionStatus;
+
     public int curHealth = 1;
     //public int maxHealth = 5;
 
@@ -86,8 +90,12 @@ public class PlayerController : MonoBehaviour
 
     float move;
 
+    int enterOnce = 0;
+
     DynamoDB.Dynode dynode;
     ItemsGenerator itemsgenerator;
+
+    bool startOver = true;
     // Use this for initialization
     void Start()
     {
@@ -225,6 +233,8 @@ public class PlayerController : MonoBehaviour
 
         if (GamePersistentManager.Instance.currentLives < 0)
         {
+            gameCompletionStatus = "Incomplete";
+            logger.sendGameCompletionLoggingtoDB = true;
             GameOverUI.SetActive(true);
             relevantitems.text = "Relevant Items Collected: " + GamePersistentManager.Instance.relevantItemsCollected;
             irrelevantItems.text = "Irrelevant Items Collected: " + GamePersistentManager.Instance.irrelevantItemsCollected;
@@ -266,39 +276,26 @@ public class PlayerController : MonoBehaviour
     public bool oneHit = true;
     private void OnTriggerExit2D(Collider2D collision)
     {
-        oneHit = true;
+        enterOnce = 0;
+    }
+
+
+    IEnumerator ResetPlayer()
+    {
+        yield return new WaitForSeconds(0.1f);
+        inventoryManager.DisplayHeart(GamePersistentManager.Instance.currentLives);
+        StartOverAgain();
+
     }
 
     void OnTriggerEnter2D(Collider2D col)
     {
 
-        ////if (DataManager.mode != 0)
-        //{
-        //    if (col.CompareTag("Coin"))
-        //    {
-        //        Debug.Log("Coin trigger called");
-        //        //audioCoin.Play();
-        //        Destroy(col.gameObject);
-        //        //DataManager.points++;
-        //        coins++;
-        //        Debug.Log("ID: " + logger.dynode.player_id);
-        //        if (coinText)
-        //            //coinText.text = "Coins: " + DataManager.points;
-        //            coinText.text = "Coins: " + coins + "/" + DataManager.NCOINS; // + "\tMode: " + DataManager.mode;// + "\tLevel: " + (SceneManager.GetActiveScene().buildIndex + 1) + "/" + (SceneManager.sceneCountInBuildSettings - 1); //+ " ID: " + logger.dynode.player_id;
-        //        if (coins == DataManager.NCOINS)
-        //        {
-        //            coinText.color = Color.green;
-        //        }
-        //        logger.LogCoins(coins);
-        //    }
-        //}
-
-        //Save HCG Item
-
+        //if (col == this.gameObject.GetComponent<Collider2D>()) { 
         if (col.CompareTag("HCGItem"))//.gameObject.tag == "HCGItem" && gameObject.tag =="Player")
         {
 
-            oneHit = false;
+
             Debug.Log(col.gameObject.tag + gameObject.tag);
             string objectName = col.gameObject.name;
             objectName = objectName.Replace("(Clone)", "");
@@ -323,6 +320,11 @@ public class PlayerController : MonoBehaviour
             if (!itemsgenerator.itemsForCurrentlocation.Contains(objectName))
 
             {
+                logger.sendLevelStatustoDB = true;
+                logger.dynode.run_id = logger.dynode.generateID();
+                logger.dynode.run_count++;
+
+                logger.dynode.action_count = 0;
                 //Die and restart
                 //Restart level
                 // Reduce one heart
@@ -344,42 +346,49 @@ public class PlayerController : MonoBehaviour
 
         }
 
-        //if (col.CompareTag("Spikes"))
-        //{
-        //    Debug.Log("Spikes trap");
-
-        //    GamePersistentManager.Instance.currentLives -= 1;
-
-        //    //Debug.Log(GamePersistentManager.Instance.currentLives);
-        //    inventoryManager.DisplayHeart(GamePersistentManager.Instance.currentLives);
-        //    StartOverAgain();
-        //    //Die();
-        //}
-
-        if (col.CompareTag("Spikes"))//.gameObject.tag == "Spikes" && gameObject.tag == "Player")
+        if (col.CompareTag("Spikes"))
         {
-            Debug.Log(col.gameObject.tag + gameObject.tag);
-            Debug.Log("Spikes trap");
+            if (startOver)
+            {
+                startOver = false;
+                logger.sendLevelStatustoDB = true;
+                logger.dynode.run_id = logger.dynode.generateID();
+                logger.dynode.run_count++;
 
-            GamePersistentManager.Instance.currentLives -= 1;
+                logger.dynode.action_count = 0;
+                //Debug.Log(col.gameObject.tag + gameObject.tag);
+                //Debug.Log("Spikes trap");
 
-            //Debug.Log(GamePersistentManager.Instance.currentLives);
-            inventoryManager.DisplayHeart(GamePersistentManager.Instance.currentLives);
-            StartOverAgain();
-            //Die();
+                GamePersistentManager.Instance.currentLives -= 1;
+
+                //Debug.Log(GamePersistentManager.Instance.currentLives);
+                StartCoroutine(ResetPlayer());
+                //inventoryManager.DisplayHeart(GamePersistentManager.Instance.currentLives);
+                //StartOverAgain();
+
+            }
+
         }
 
         if (col.CompareTag("RisingSpikes"))//col.gameObject.tag == "RisingSpikes" && gameObject.tag == "Player")
         {
-            Debug.Log(col.gameObject.tag + gameObject.tag);
-            Debug.Log("Spikes trap");
+            logger.sendLevelStatustoDB = true;
+            logger.dynode.run_id = logger.dynode.generateID();
+            logger.dynode.run_count++;
+
+            logger.dynode.action_count = 0;
+
+            //Debug.Log(col.gameObject.tag + gameObject.tag);
+            //Debug.Log("Spikes trap");
 
             GamePersistentManager.Instance.currentLives -= 1;
 
             //Debug.Log(GamePersistentManager.Instance.currentLives);
+            //StartCoroutine(ResetPlayer());
             inventoryManager.DisplayHeart(GamePersistentManager.Instance.currentLives);
             StartOverAgain();
-            //Die();
+
+
         }
 
         if (col.CompareTag("Chest"))
@@ -390,18 +399,48 @@ public class PlayerController : MonoBehaviour
             canDie = false;
 
             if (GamePersistentManager.Instance.inventoryCount == inventoryLimit)
+            {
+                //IncrementRunID and action count to 0
+                //logger.dynode.run_id = logger.dynode.generateID();
+                //logger.dynode.run_count++;
+
+                //logger.dynode.action_count = 0;
+                if (SceneManager.GetActiveScene().buildIndex == 0)
+                {
+                    level1Completion = "Complete";
+                    level2Completion = "Incomplete";
+                    level3Completion = "Incomplete";
+                }
+
+                if (SceneManager.GetActiveScene().buildIndex == 1)
+                {
+                    level1Completion = "Complete";
+                    level2Completion = "Complete";
+                    level3Completion = "Incomplete";
+                }
+
+                if (SceneManager.GetActiveScene().buildIndex == 2)
+                {
+                    level1Completion = "Complete";
+                    level2Completion = "Complete";
+                    level3Completion = "Complete";
+                }
+                logger.sendLevelCompletiontoDB = true;
                 StartCoroutine(FadeOut());
+            }
+
 
         }
-        if (col.gameObject.tag == "Chest")
-        {
-            canMove = false;
-            canDie = false;
 
-            if (GamePersistentManager.Instance.inventoryCount == inventoryLimit)
-                StartCoroutine(FadeOut());
+        //if (col.gameObject.tag == "Chest")
+        //{
+        //    canMove = false;
+        //    canDie = false;
 
-        }
+        //    if (GamePersistentManager.Instance.inventoryCount == inventoryLimit)
+        //        StartCoroutine(FadeOut());
+
+        //}
 
         //if ((col.CompareTag("Enemy") || col.CompareTag("Killer")) && canDie)
         //if ((System.Array.IndexOf(killers, col.tag) > -1) && canDie)
@@ -445,7 +484,12 @@ public class PlayerController : MonoBehaviour
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         else
         {
-            gameCompleteUI.SetActive(true);
+            if (SceneManager.GetActiveScene().buildIndex == 2)
+            {
+                gameCompletionStatus = "Complete";
+                logger.sendGameCompletionLoggingtoDB = true;
+                gameCompleteUI.SetActive(true);
+            }
         }
     }
 
@@ -459,9 +503,9 @@ public class PlayerController : MonoBehaviour
     {
         float fadeTime = GameObject.Find("GameMaster").GetComponent<Fading>().BeginFade(1);
         yield return new WaitForSeconds(fadeTime);
-        
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
-        
+
     }*/
 
     void FillInventoryDuringStart()
@@ -493,6 +537,7 @@ public class PlayerController : MonoBehaviour
         transform.position = GamePersistentManager.Instance.startPosition;
         Time.timeScale = 1;
         itemMismatchUI.SetActive(false);
+        startOver = true;
     }
 
 }

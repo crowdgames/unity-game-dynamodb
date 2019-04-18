@@ -65,10 +65,10 @@ namespace DynamoDB
             string targetHeaderValue = action;
             string method = "POST";
             string service = "dynamodb";
-            string host = "dynamodb.us-east-2.amazonaws.com";
-            string region = "us-east-2";
+            string host = "dynamodb.us-west-2.amazonaws.com";
+            string region = "us-west-2";
             string contentType = "application/x-amz-json-1.0";
-            string endpoint = "http://dynamodb.us-east-2.amazonaws.com/";
+            string endpoint = "http://dynamodb.us-west-2.amazonaws.com/";
 
             // quite sure this was needed, but appears to work without
             //string request_parameters = "DynamoDB_20120810.DescribeTable";

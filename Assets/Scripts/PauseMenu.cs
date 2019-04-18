@@ -35,7 +35,7 @@ public class PauseMenu : MonoBehaviour {
             if (initial_logging_state)
             {
                 player.logging = false;
-                player.LogPause();
+                //player.LogPause();
             }
             Time.timeScale = 0;
         }

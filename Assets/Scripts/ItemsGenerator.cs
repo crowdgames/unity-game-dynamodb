@@ -15,7 +15,7 @@ public class ItemsGenerator : MonoBehaviour
     public List<GameObject> items = new List<GameObject>();
     GameObject[] sceneItems;
 
-    public Text scoreText;
+    //public Text scoreText;
 
     public string[] itemsForCurrentlocation;
     // Use this for initialization

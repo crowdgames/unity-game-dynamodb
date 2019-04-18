@@ -1,0 +1,104 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+
+using BayatGames.SaveGamePro.Serialization.Types;
+
+namespace BayatGames.SaveGamePro.Serialization
+{
+
+	/// <summary>
+	/// Save Game Type Manager.
+	/// Manage custom types using this API.
+	/// </summary>
+	public static class SaveGameTypeManager
+	{
+
+		private static Dictionary<Type, SaveGameType> m_Types;
+
+		/// <summary>
+		/// Gets the types.
+		/// </summary>
+		/// <value>The types.</value>
+		public static Dictionary<Type, SaveGameType> Types
+		{
+			get
+			{
+				if ( m_Types == null )
+				{
+					Initialize ();
+				}
+				return m_Types;
+			}
+		}
+
+		/// <summary>
+		/// Initialize the manager and load all custom types.
+		/// </summary>
+		[RuntimeInitializeOnLoadMethod ( RuntimeInitializeLoadType.BeforeSceneLoad )]
+		private static void Initialize ()
+		{
+			m_Types = new Dictionary<Type, SaveGameType> ();
+			#if (UNITY_WSA || UNITY_WINRT) && !UNITY_EDITOR
+#ADDTYPES#
+			#else
+			Type type = typeof ( SaveGameType );
+			Type [] typesFound = AppDomain.CurrentDomain.GetAssemblies ()
+			.SelectMany ( s => s.GetTypes () )
+			.Where ( p => type.IsAssignableFrom ( p ) && !p.IsInterface && !p.IsAbstract ).ToArray ();
+			for ( int i = 0; i < typesFound.Length; i++ )
+			{
+				SaveGameType saveGameType = ( SaveGameType )Activator.CreateInstance ( typesFound [ i ] );
+				m_Types.Add ( saveGameType.AssociatedType, saveGameType );
+			}
+			#endif
+		}
+
+		/// <summary>
+		/// Add the custom type.
+		/// </summary>
+		/// <param name="type">Type.</param>
+		/// <param name="saveGameType">Save game type.</param>
+		public static void AddType ( Type type, SaveGameType saveGameType )
+		{
+			if ( !HasType ( type ) )
+			{
+				Types.Add ( type, saveGameType );
+			}
+		}
+
+		/// <summary>
+		/// Remove the type.
+		/// </summary>
+		/// <param name="type">Type.</param>
+		public static void RemoveType ( Type type )
+		{
+			Types.Remove ( type );
+		}
+
+		/// <summary>
+		/// Get the type.
+		/// </summary>
+		/// <returns>The type.</returns>
+		/// <param name="type">Type.</param>
+		public static SaveGameType GetType ( Type type )
+		{
+			return Types [ type ];
+		}
+
+		/// <summary>
+		/// Determines if the type exists.
+		/// </summary>
+		/// <returns><c>true</c> if has type the specified type; otherwise, <c>false</c>.</returns>
+		/// <param name="type">Type.</param>
+		public static bool HasType ( Type type )
+		{
+			return Types.ContainsKey ( type );
+		}
+
+	}
+
+}

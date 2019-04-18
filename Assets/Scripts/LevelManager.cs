@@ -28,9 +28,9 @@ public class LevelManager : MonoBehaviour {
 
         Debug.Log("inside level manager start");
         player = GameObject.FindObjectOfType<PlayerController>();
-        log = player.GetComponent<Logger>();
+        //log = player.GetComponent<Logger>();
         fadePanel = GameObject.FindObjectOfType<Fade>();
-        startPos = player.transform.position;
+        //startPos = player.transform.position;
         coinTextObj = GameObject.FindGameObjectWithTag("CoinText");
         
         if(DataManager.mode == 3)

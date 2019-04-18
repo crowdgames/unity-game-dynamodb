@@ -1,0 +1,52 @@
+<HTMLQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2011-11-11/HTMLQuestion.xsd">
+  <HTMLContent><![CDATA[
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta http-equiv='Content-Type' content='text/html; charset=UTF-8'/>
+  <script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
+ </head>
+ <body>
+  <form name='mturk_form' method='post' id='mturk_form' action='https://www.mturk.com/mturk/externalSubmit'>
+  <input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+
+<h3>Game Play test</h3>
+
+<p>Play a simple 2D platformer game and complete a mission within the game.</p>
+
+
+<p> Game link: <a href="http://viridian.ccs.neu.edu:3003/proto_platformer_survey/" target="_blank">Click here</a></p>
+
+ 
+ <!--<p> Task link: <a href="http://viridian.ccs.neu.edu:3003/pp2dretainerstudy/" target="_blank">Click here</a> -->
+<p>When you complete the game, a secret code will be provided and you can paste it in the below text box to receive the payment </p>
+<p>Enter the survey code here: <input id="code" name="code" size="10" type="text" onkeyup="myFunction()"/></p>
+ <input type='submit' id='submitButton' value='Submit' name='subbutton' disabled="disabled" />
+
+</form>
+
+  <script type="text/javascript">
+  function myFunction() { 
+
+    
+    if(document.getElementById("code").value == "63185423"){
+        document.mturk_form.subbutton.disabled=false;
+    
+    }
+
+}
+  </script>
+
+  <script language='Javascript'>
+
+          turkSetAssignmentID();
+
+      </script>
+
+
+ </body>
+</html>
+]]>
+  </HTMLContent>
+  <FrameHeight>450</FrameHeight>
+</HTMLQuestion>

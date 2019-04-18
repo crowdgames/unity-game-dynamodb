@@ -17,6 +17,10 @@ public class CharacterControllerU : MonoBehaviour
     public Image irrelevantImage;
     public GameObject gameCompleteUI;
 
+    //DB entries
+    public string level1Completion, level2Completion, level3Completion;
+    public string gameCompletionStatus;
+
     //Inventory script
     InventoryManager inventoryManager;
     int inventoryCount = 0;
@@ -46,9 +50,11 @@ public class CharacterControllerU : MonoBehaviour
     Vector3 startPos;
     ItemsGenerator itemsgenerator;
 
+    Logger logger;
     // Use this for initialization
     void Start()
     {
+        logger = this.gameObject.GetComponent<Logger>();
         facingRight = true;
         rigidBody = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
@@ -96,6 +102,8 @@ public class CharacterControllerU : MonoBehaviour
 
         if (GamePersistentManager.Instance.currentLives < 0)
         {
+            gameCompletionStatus = "Incomplete";
+            logger.sendGameCompletionLoggingtoDB = true;
             GameOverUI.SetActive(true);
             relevantitems.text = "Relevant Items Collected: " + GamePersistentManager.Instance.relevantItemsCollected;
             irrelevantItems.text = "Irrelevant Items Collected: " + GamePersistentManager.Instance.irrelevantItemsCollected;
@@ -232,6 +240,12 @@ public class CharacterControllerU : MonoBehaviour
                     Time.timeScale = 0;
                 }
 
+                //IncrementRunID and action count to 0
+                logger.sendLevelStatustoDB = true;
+                logger.dynode.run_id = logger.dynode.generateID();
+                logger.dynode.run_count++;
+
+                logger.dynode.action_count = 0;
 
             }
 
@@ -249,6 +263,12 @@ public class CharacterControllerU : MonoBehaviour
             inventoryManager.DisplayHeart(GamePersistentManager.Instance.currentLives);
             StartOverAgain();
             //Die();
+            //IncrementRunID and action count to 0
+            logger.sendLevelStatustoDB = true;
+            logger.dynode.run_id = logger.dynode.generateID();
+            logger.dynode.run_count++;
+
+            logger.dynode.action_count = 0;
         }
 
         if (col.CompareTag("RisingSpikes"))//col.gameObject.tag == "RisingSpikes" && gameObject.tag == "Player")
@@ -262,6 +282,13 @@ public class CharacterControllerU : MonoBehaviour
             inventoryManager.DisplayHeart(GamePersistentManager.Instance.currentLives);
             StartOverAgain();
             //Die();
+
+            //IncrementRunID and action count to 0
+            logger.sendLevelStatustoDB = true;
+            logger.dynode.run_id = logger.dynode.generateID();
+            logger.dynode.run_count++;
+
+            logger.dynode.action_count = 0;
         }
 
         if (col.CompareTag("Chest"))
@@ -272,18 +299,47 @@ public class CharacterControllerU : MonoBehaviour
             canDie = false;
 
             if (GamePersistentManager.Instance.inventoryCount == inventoryLimit)
+            {
+                //IncrementRunID and action count to 0
+                //logger.dynode.run_id = logger.dynode.generateID();
+                //logger.dynode.run_count++;
+
+                //logger.dynode.action_count = 0;
+                if(SceneManager.GetActiveScene().buildIndex == 0)
+                {
+                    level1Completion = "Complete";
+                    level2Completion = "Incomplete";
+                    level3Completion = "Incomplete";
+                }
+
+                if (SceneManager.GetActiveScene().buildIndex == 1)
+                {
+                    level1Completion = "Complete";
+                    level2Completion = "Complete";
+                    level3Completion = "Incomplete";
+                }
+
+                if (SceneManager.GetActiveScene().buildIndex == 2)
+                {
+                    level1Completion = "Complete";
+                    level2Completion = "Complete";
+                    level3Completion = "Complete";
+                }
+                logger.sendLevelCompletiontoDB = true;
                 StartCoroutine(FadeOut());
+            }
+     
 
         }
-        if (col.gameObject.tag == "Chest")
-        {
-            canMove = false;
-            canDie = false;
+        //if (col.gameObject.tag == "Chest")
+        //{
+        //    canMove = false;
+        //    canDie = false;
 
-            if (GamePersistentManager.Instance.inventoryCount == inventoryLimit)
-                StartCoroutine(FadeOut());
+        //    if (GamePersistentManager.Instance.inventoryCount == inventoryLimit)
+        //        StartCoroutine(FadeOut());
 
-        }
+        //}
 
 
     }
@@ -311,10 +367,18 @@ public class CharacterControllerU : MonoBehaviour
         GamePersistentManager.Instance.inventoryItems.Clear();
         GamePersistentManager.Instance.inventoryCount = 0;
         if (SceneManager.GetActiveScene().buildIndex + 1 <= 2)
+        {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+
+        }
         else
         {
-            gameCompleteUI.SetActive(true);
+            if (SceneManager.GetActiveScene().buildIndex == 2)
+            {
+                gameCompletionStatus = "Complete";
+                logger.sendGameCompletionLoggingtoDB = true;
+                gameCompleteUI.SetActive(true);
+            }
         }
     }
 

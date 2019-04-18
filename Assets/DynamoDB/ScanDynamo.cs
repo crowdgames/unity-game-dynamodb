@@ -132,3 +132,23 @@ public class LogAction
         return "ActionCount: " + action_count + " - Stamp: " + stamp;
     }
 }
+
+public class ActionNew
+{
+    public string action;
+    public double stamp;
+    public int action_count;
+
+    public ActionNew(string a, double time, int actionCount)
+    {
+        action = a;
+        stamp = time;
+        action_count = actionCount;
+    }
+
+    override
+    public string ToString()
+    {
+        return "ActionCount: " + action_count + " - Stamp: " + stamp;
+    }
+}
