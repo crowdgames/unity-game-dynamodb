@@ -28,7 +28,7 @@ namespace DynamoDB
         private string currentVersion = "version 1.0";
         private string playTestTag = "PT";
 
-   
+
         void Start()
         {
             // Achieve Session Persistence
@@ -41,7 +41,7 @@ namespace DynamoDB
 
             session_id = generateID();
             startTime = DateTime.UtcNow;
-  
+
             http = gameObject.AddComponent<DDBHTTP>();
             http.action = "DynamoDB_20120810.PutItem";
             http.AWS_ACCESS_KEY_ID = AWS_ACCESS_KEY_ID;
@@ -107,13 +107,13 @@ namespace DynamoDB
             {
                 if (callback != null)
                 {
-                    //Debug.Log(callback);
+                    Debug.Log(callback);
                 }
             }));
         }
 
         public void SendLevelCompletionStatus(string level1Status, string level2Status,
-        string level3Status)
+        string level3Status, string RC, string IC, string INC, string RNC)
         {
             DateTime stamp = DateTime.UtcNow;
 
@@ -128,6 +128,10 @@ namespace DynamoDB
             obj["Item"][primary_key]["S"] = generateID();
             obj["Item"]["timestamp"]["S"] = stamp.ToString();
             obj["Item"]["version"]["S"] = currentVersion;
+            obj["Item"]["RC"]["S"] = RC;
+            obj["Item"]["IC"]["S"] = IC;
+            obj["Item"]["INC"]["S"] = INC;
+            obj["Item"]["RNC"]["S"] = RNC;
 
 
             http.BuildWWWRequest(obj.ToString(), stamp);
@@ -136,7 +140,7 @@ namespace DynamoDB
             {
                 if (callback != null)
                 {
-                   // Debug.Log(callback);
+                    // Debug.Log(callback);
                 }
             }));
 
@@ -156,6 +160,7 @@ namespace DynamoDB
             obj["Item"][primary_key]["S"] = generateID();
             obj["Item"]["timestamp"]["S"] = stamp.ToString();
             obj["Item"]["version"]["S"] = currentVersion;
+
 
 
             http.BuildWWWRequest(obj.ToString(), stamp);
@@ -196,7 +201,38 @@ namespace DynamoDB
             {
                 if (callback != null)
                 {
-                  //  Debug.Log(callback);
+                    Debug.Log(callback);
+                }
+            }));
+        }
+
+
+        public void SendTrapStatus(string trapLocation, string levelNumber, string description)
+        {
+
+
+            DateTime stamp = DateTime.UtcNow;
+
+            var obj = new JSONObject();
+            obj["TableName"] = "arapid-pp-trap-traces";
+            obj["Item"]["session_id"]["S"] = session_id;
+            obj["Item"]["run_id"]["S"] = run_id;
+            obj["Item"][primary_key]["S"] = generateID();
+            obj["Item"]["timestamp"]["S"] = stamp.ToString();
+            obj["Item"]["version"]["S"] = currentVersion;
+            obj["Item"]["playtest_tag"]["S"] = playTestTag;
+            obj["Item"]["test_serial_id"]["S"] = "TBD";// MainMenu.testID;
+            obj["Item"]["trap_location"]["S"] = trapLocation;
+            obj["Item"]["level_number"]["S"] = levelNumber;
+            obj["Item"]["description"]["S"] = description;
+
+            http.BuildWWWRequest(obj.ToString(), stamp);
+            //Debug.Log("data posted!");
+            StartCoroutine(http.WaitForRequest(http.www, callback =>
+            {
+                if (callback != null)
+                {
+                    Debug.Log(callback);
                 }
             }));
         }
@@ -222,6 +258,7 @@ namespace DynamoDB
             obj["Item"]["actual_test_starttime"]["S"] = "TBD";// MainMenu.actaulTestStartTime;
             obj["Item"]["gameplay_starttime"]["S"] = "TBD";// gameplayStartTime;
 
+
             http.BuildWWWRequest(obj.ToString(), stamp);
             //Debug.Log(obj.ToString());
             StartCoroutine(http.WaitForRequest(http.www, callback =>
@@ -235,7 +272,7 @@ namespace DynamoDB
         }
 
 
-     
+
         public void SendMturkTestDetails(string testSerialId, string reqAssignments, string maxAssignments,
             string HITId, DDBHTTP httpCall)
         {
@@ -287,7 +324,7 @@ namespace DynamoDB
             {
                 if (callback != null)
                 {
-                   // Debug.Log(callback);
+                    // Debug.Log(callback);
                     //Debug.Log("Posted timestamps!");
                 }
             }));

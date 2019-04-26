@@ -4,16 +4,20 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace BayatGames.SaveGamePro.Examples
 {
+
 
     /// <summary>
     /// Save game object example.
     /// </summary>
     public class SaveGameObject : MonoBehaviour
     {
-        public static string fileName = "SerializedData.txt";
+       
+        
+        public static string fileName = "SerializedDataV.txt";//+ SceneManager.GetActiveScene().buildIndex + ".txt";
         string url = "https://s3.us-east-2.amazonaws.com/gameedits/" + fileName;
         //string url = "https://s3.us-east-2.amazonaws.com/gameedits/test.txt";
         /// <summary>
@@ -21,7 +25,7 @@ namespace BayatGames.SaveGamePro.Examples
         /// </summary>
         public bool testMode = false;
 
-
+        public bool testForObjects = false;
 
         public List<GameObject> obj = new List<GameObject>();
 
@@ -30,6 +34,7 @@ namespace BayatGames.SaveGamePro.Examples
         /// </summary>
         public void Save()
         {
+            Debug.Log(Application.persistentDataPath);
             SaveGame.Save(fileName, obj);
             Debug.Log("File saved!");
         }
@@ -37,20 +42,41 @@ namespace BayatGames.SaveGamePro.Examples
 
 
         void Awake()
-        {
+        { 
+            if(SceneManager.GetActiveScene().buildIndex == 0)
+            {
+                fileName = "SerializedDataV1.txt";
+                //url = "https://s3.us-east-2.amazonaws.com/gameedits/" + fileName;
+            }
+
+            if (SceneManager.GetActiveScene().buildIndex == 1)
+            {
+                fileName = "SerializedDataV2.txt";
+                //url = "https://s3.us-east-2.amazonaws.com/gameedits/" + fileName;
+            }
+
+            if (SceneManager.GetActiveScene().buildIndex == 2)
+            {
+                fileName = "SerializedDataV3.txt";
+              
+            }
+
+            url = "https://s3.us-east-2.amazonaws.com/gameedits/" + fileName;
+
+
             if (testMode)
                 ReadURL();
         }
 
 
-        // Function to load "gameObject.txt" file from Amazon s3 bucket.
+        //// Function to load "gameObject.txt" file from Amazon s3 bucket.
         void ReadURL()
         {
             // Debug.Log("Reading file");
             WWW www = new WWW(url);
 
             StartCoroutine(WaitForRequest(www));
-       
+
         }
 
         IEnumerator WaitForRequest(WWW www)
@@ -67,16 +93,16 @@ namespace BayatGames.SaveGamePro.Examples
 
                     obj = formatter.Deserialize<List<GameObject>>(stream);
                 }
+                testForObjects = true;
             }
             else
             {
                 Debug.Log("WWW Error: " + www.error);
             }
 
-       
+
         }
 
 
     }
-
 }

@@ -4,16 +4,23 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using BayatGames.SaveGamePro.Examples;
 
 public class ItemsGenerator : MonoBehaviour
 {
-
+    public Text statusText;
     int randomPositionForRelevantItems;
     int relevantItemsCount;
     public bool isStartingPhase = true;
-    public Text locationText;
+    //public Text locationText;
+    //public GameObject canvas;
+    //public GameObject empltySlot;
     public List<GameObject> items = new List<GameObject>();
-    GameObject[] sceneItems;
+    List<string> itemsString = new List<string>()
+    {
+        "BoxingGloves", "FootBall", "driller", "electricsaw", "hammer", "RugbyBall"
+    };
+    public GameObject[] sceneItems;
 
     //public Text scoreText;
 
@@ -24,75 +31,128 @@ public class ItemsGenerator : MonoBehaviour
     List<int> myCount = new List<int>();
     bool isFirstEntry = true;
     int relevantItemsIterator = 0;
+    PlayerController playerController;
+
+    public int UIInventoryLimit = 0;
+
+    SaveGameObject sgo;
+
+    bool firstEntry = false;
 
     void Start()
     {
-        //Debug.Log("Scene Number: "+SceneManager.GetActiveScene().buildIndex);
-        itemsForCurrentlocation = RelevanceManager.DetermineLocation(locationText.text);
-        sceneItems = GameObject.FindGameObjectsWithTag("Item");
-        myCount.Clear();
-        isStartingPhase = false;
+        //statusText.text = "Relevant items collected : 0 / 0";
+        ////Debug.Log("Scene Number: "+SceneManager.GetActiveScene().buildIndex);
+        playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+        sgo = GameObject.FindGameObjectWithTag("SGO").GetComponent<SaveGameObject>();
 
-        relevantItemsCount = GamePersistentManager.Instance.sceneItemsManager[SceneManager.GetActiveScene().buildIndex].itemsInScene;
+        //itemsForCurrentlocation = RelevanceManager.DetermineLocation("Grocery Store");
+        //sceneItems = GameObject.FindGameObjectsWithTag("Item");
+        //myCount.Clear();
+        //isStartingPhase = false;
 
-        for (int j = 0; j < sceneItems.Length; j++)
+        //relevantItemsCount = GamePersistentManager.Instance.sceneItemsManager[SceneManager.GetActiveScene().buildIndex].itemsInScene;
+
+   
+
+    }
+
+    private void Update()
+    {
+        if (firstEntry)
         {
+            statusText.text = "Relevant items collected : " + playerController.relevantItemsCollectedInLevel.ToString() + " / " + UIInventoryLimit.ToString();//0 / 0";
+        }
 
+        if (sgo.testForObjects)
+        {
+            sgo.testForObjects = false;
+
+            itemsForCurrentlocation = RelevanceManager.DetermineLocation(playerController.scenarioText);
+            //itemsForCurrentlocation = RelevanceManager.DetermineLocation("Grocery Store");
+            sceneItems = GameObject.FindGameObjectsWithTag("Item");
+            myCount.Clear();
+            isStartingPhase = false;
+
+            //relevantItemsCount = GamePersistentManager.Instance.sceneItemsManager[SceneManager.GetActiveScene().buildIndex].itemsInScene;
+            relevantItemsCount = sceneItems.Length / 2;
+            UIInventoryLimit = sceneItems.Length / 2;
+
+            //for(int i=0;i< sceneItems.Length / 2; i++)
+            //{
+            //    var createImage = Instantiate(empltySlot) as GameObject;
+            //    createImage.transform.SetParent(canvas.transform, false);
+            //}
+
+
+            firstEntry = true;
             CountRelevantItems();
 
-
-            if (myCount.Contains(j))
+            for (int j = 0; j < sceneItems.Length; j++)
             {
 
-                if (SceneManager.GetActiveScene().buildIndex == 0)
+
+                if (myCount.Contains(j))
                 {
-                    sceneItems[j] = Instantiate(myInputList[relevantItemsIterator], sceneItems[j].transform.position, Quaternion.identity);
-                    //sceneItems[j] = Instantiate(GamePersistentManager.Instance.itemsList[Random.Range(5, 10)],
-                    //    sceneItems[j].transform.position, Quaternion.identity);
-                    relevantItemsIterator++;
+
+                    if (SceneManager.GetActiveScene().buildIndex == 0)
+                    {
+
+                        //sceneItems[j] = Instantiate(myInputList[relevantItemsIterator]) as GameObject;
+                        //sceneItems[j].transform.position = sceneItems[j].transform.position;
+                        //sceneItems[j].transform.rotation = Quaternion.identity;
+                        GameObject g = Instantiate(myInputList[relevantItemsIterator]) as GameObject;
+                        g.transform.position = sceneItems[j].transform.position;
+                        g.transform.rotation = Quaternion.identity;
+                        relevantItemsIterator++;
+                    }
+
+                    if (SceneManager.GetActiveScene().buildIndex == 1)
+                    {
+
+
+                        //sceneItems[j] = Instantiate(myInputList[relevantItemsIterator]) as GameObject;
+                        //sceneItems[j].transform.position = sceneItems[j].transform.position;
+                        //sceneItems[j].transform.rotation = Quaternion.identity;
+
+                        GameObject g = Instantiate(myInputList[relevantItemsIterator]) as GameObject;
+                        g.transform.position = sceneItems[j].transform.position;
+                        g.transform.rotation = Quaternion.identity;
+                        relevantItemsIterator++;
+
+                    }
+
+                    if (SceneManager.GetActiveScene().buildIndex == 2)
+                    {
+
+
+                        //sceneItems[j] = Instantiate(myInputList[relevantItemsIterator]) as GameObject;
+                        //sceneItems[j].transform.position = sceneItems[j].transform.position;
+                        //sceneItems[j].transform.rotation = Quaternion.identity;
+                        GameObject g = Instantiate(myInputList[relevantItemsIterator]) as GameObject;
+                        g.transform.position = sceneItems[j].transform.position;
+                        g.transform.rotation = Quaternion.identity;
+                        relevantItemsIterator++;
+
+                    }
+
                 }
 
-                if (SceneManager.GetActiveScene().buildIndex == 1)
+                else
                 {
-                    //if (isFirstEntry)
-                    //{
-                    //    isFirstEntry = false;
-                    //    List<GameObject> myInputList = GamePersistentManager.Instance.itemsList.ToList().GetRange(0, 5);
 
-                    //    myInputList = ShuffleList(myInputList);
-                    //}
-                    sceneItems[j] = Instantiate(myInputList[relevantItemsIterator], sceneItems[j].transform.position, Quaternion.identity);
-                    //sceneItems[j] = Instantiate(GamePersistentManager.Instance.itemsList[Random.Range(5, 10)],
-                    //    sceneItems[j].transform.position, Quaternion.identity);
-                    relevantItemsIterator++;
-                    //sceneItems[j] = Instantiate(GamePersistentManager.Instance.itemsList[Random.Range(0, 5)],
-                    //    sceneItems[j].transform.position, Quaternion.identity);
-                }
+                    //sceneItems[j] = Instantiate(Resources.Load("L1/" + itemsString[Random.Range(0, itemsString.Count - 1)]) as GameObject);// items[Random.Range(0, items.Count - 1)]) as GameObject;
+                    //sceneItems[j].transform.position = sceneItems[j].transform.position;
+                    //sceneItems[j].transform.rotation = Quaternion.identity;
 
-                if (SceneManager.GetActiveScene().buildIndex == 2)
-                {
-                    //if (isFirstEntry)
-                    //{
-                    //    isFirstEntry = false;
-                    //    List<GameObject> myInputList = GamePersistentManager.Instance.itemsList.ToList().GetRange(21, 27);
-                    //    myInputList = ShuffleList(myInputList);
-                    //}
-                    sceneItems[j] = Instantiate(myInputList[relevantItemsIterator], sceneItems[j].transform.position, Quaternion.identity);
-                    //sceneItems[j] = Instantiate(GamePersistentManager.Instance.itemsList[Random.Range(5, 10)],
-                    //    sceneItems[j].transform.position, Quaternion.identity);
-                    relevantItemsIterator++;
-                    //sceneItems[j] = Instantiate(GamePersistentManager.Instance.itemsList[Random.Range(21, 27)],
-                    //    sceneItems[j].transform.position, Quaternion.identity);
+                    GameObject g = Instantiate(items[Random.Range(0, items.Count - 1)] as GameObject);
+                    //GameObject g = Instantiate(Resources.Load("L1/" + itemsString[Random.Range(0, itemsString.Count - 1)]) as GameObject);
+                    g.transform.position = sceneItems[j].transform.position;
+                    g.transform.rotation = Quaternion.identity;
+
                 }
 
             }
-
-            else
-            {
-                sceneItems[j] = Instantiate(items[Random.Range(0, items.Count - 1)], sceneItems[j].transform.position, Quaternion.identity);
-
-            }
-
         }
 
     }
@@ -105,7 +165,7 @@ public class ItemsGenerator : MonoBehaviour
             myInputList = GamePersistentManager.Instance.itemsList.ToList().GetRange(5, 5);
             myInputList = ShuffleList(myInputList);
 
-            while (myCount.Count < 3)
+            while (myCount.Count < sceneItems.Length / 2)
             {
                 randomPositionForRelevantItems = Random.Range(0, 2 * relevantItemsCount);
                 if (!myCount.Contains(randomPositionForRelevantItems))
@@ -117,7 +177,8 @@ public class ItemsGenerator : MonoBehaviour
         {
             myInputList = GamePersistentManager.Instance.itemsList.ToList().GetRange(0, 5);
             myInputList = ShuffleList(myInputList);
-            while (myCount.Count < 5)
+
+            while (myCount.Count < sceneItems.Length / 2)
             {
                 randomPositionForRelevantItems = Random.Range(0, 2 * relevantItemsCount);
                 if (!myCount.Contains(randomPositionForRelevantItems))
@@ -129,7 +190,9 @@ public class ItemsGenerator : MonoBehaviour
         {
             myInputList = GamePersistentManager.Instance.itemsList.ToList().GetRange(21, 7);
             myInputList = ShuffleList(myInputList);
-            while (myCount.Count < 7)
+   
+
+            while (myCount.Count < sceneItems.Length / 2)
             {
                 randomPositionForRelevantItems = Random.Range(0, 2 * relevantItemsCount);
                 if (!myCount.Contains(randomPositionForRelevantItems))

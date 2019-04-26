@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Callbacks;
 
 using BayatGames.SaveGamePro.Utilities;
 
@@ -191,6 +192,10 @@ namespace BayatGames.SaveGamePro.Editor
                     GUILayout.Label(dependenciesText, EditorStyles.wordWrappedLabel);
                 }
                 EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button(string.Format("Version {0}", integration.Version), EditorStyles.miniButton))
+                {
+                    EditorUtility.DisplayDialog(string.Format("{0} Changelog", integration.Title), string.Format("Version {0}\n{1}", integration.Version, integration.Changelog), "Done");
+                }
                 GUILayout.FlexibleSpace();
                 if (integration.Links != null)
                 {

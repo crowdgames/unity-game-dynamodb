@@ -256,6 +256,15 @@ namespace BayatGames.SaveGamePro.Reflection
             return FormatterServices.GetUninitializedObject(type);
         }
 #endif
+        /// <summary>
+        /// Retrieves the nullable version of the type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static Type GetNullableType(this Type type)
+        {
+            return typeof(Nullable<>).MakeGenericType(type);
+        }
 
     }
 

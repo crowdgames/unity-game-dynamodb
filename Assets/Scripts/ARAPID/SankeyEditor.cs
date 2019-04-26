@@ -71,6 +71,13 @@ public class SankeyEditor : MonoBehaviour
     float descendValueL1, descendValueL2, descendValueL3;
 
     public Dictionary<string, string> runIdsComparison = new Dictionary<string, string>();
+
+
+    //ConfusionMatrixRepresentation
+    List<Confusionmatrix> confusionMatrixL1 = new List<Confusionmatrix>();
+    List<Confusionmatrix> confusionMatrixL2 = new List<Confusionmatrix>();
+    List<Confusionmatrix> confusionMatrixL3 = new List<Confusionmatrix>();
+
     //Counter variables for each trap
     private int acidPit;
     private int spikes;
@@ -216,6 +223,31 @@ public class SankeyEditor : MonoBehaviour
     {
         //Milestones mapper
 
+        var ConfusionMatrixMapper = confusionMatrixL1.GroupBy(x => x.Position).Select(g => new { Name = g.Key, ic = g.Sum(c => c.IC1), rc = g.Sum(rc => rc.RC1), Count = g.Count() });
+        foreach (var cfM in ConfusionMatrixMapper)
+        {
+            GUIStyle style = new GUIStyle();
+            style.normal.textColor = Color.blue;
+            style.fontSize = 8;
+            style.fontStyle = FontStyle.Bold;
+
+            float xValrc = cfM.rc * 4.0f / (cfM.rc + cfM.ic) * 1.0f;
+            float xValic = cfM.ic * 4.0f / (cfM.rc + cfM.ic) * 1.0f;
+        
+
+            if ((xValrc < 1 && xValrc != 0)) xValrc = 1;
+            if ((xValic < 1 && xValic != 0)) xValic = 1;
+            
+            Gizmos.color = Color.green;
+            Gizmos.DrawCube(cfM.Name - new Vector3(0.75f, 0, 0), new Vector3(xValrc, 4, 4));
+
+            UnityEditor.Handles.Label(cfM.Name + new Vector3(0, 3, 0), "RC = " + cfM.rc + "|" + "IC = " + cfM.ic, style);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawCube(cfM.Name + new Vector3(0.75f, 0, 0), new Vector3(xValic, 4, 4));
+
+
+        }
 
         var tempProcess = collectedTrapTraces.GroupBy(x => new { x.RunId, x.TrapPosition }).Select(g => g.First());
 
@@ -590,8 +622,13 @@ public class SankeyEditor : MonoBehaviour
         GenerateSurvivalPlot(obj, now, levelNumber);
     }
 
+
+
+
+
     public void GenerateSurvivalPlot(JSONObject jObj, DateTime timeNow, string levelNumber)
     {
+        Debug.Log("XXXXXXXXXXXXXXXXXXXXXXX");
         level1CompCount = 0;
         level2CompCount = 0;
         level3CompCount = 0;
@@ -659,7 +696,7 @@ public class SankeyEditor : MonoBehaviour
 
     public void GenerateDamageFlow(JSONObject jObj, DateTime timeNow, string levelNumber)
     {
-
+        Debug.Log("XXXXXXXXXXXXXXXXXXXXXXX");
         httpScript.BuildWWWRequest(jObj.ToString(), timeNow);
         //Debug.Log("Query complete!");
         levelStatusDetails.Clear();
@@ -776,6 +813,120 @@ public class SankeyEditor : MonoBehaviour
             }
         }));
     }
+
+    public void ScanConfusionMatrixData(string testIdDat, string levelNumber)
+    {
+        var obj = new JSONObject();
+        DateTime now = DateTime.UtcNow;
+
+        obj["TableName"] = "arapid-pp-trap-traces";
+        obj["FilterExpression"] = "test_serial_id = :val";
+        obj["ExpressionAttributeValues"][":val"]["S"] = testIdDat;// -insert MainMenu test serial_id and remove playTestTag;
+        obj["ReturnConsumedCapacity"] = "TOTAL";
+
+        GenerateConfusionMatrixPlot(obj, now, levelNumber);
+    }
+
+    public void GenerateConfusionMatrixPlot(JSONObject jObj, DateTime timeNow, string levelNumber)
+    {
+        confusionMatrixL1.Clear();
+        int RCL1 = 0;
+        int RCL2 = 0;
+        int RCL3 = 0;
+        int ICL1 = 0;
+        int ICL2 = 0;
+        int ICL3 = 0;
+
+        httpScript.BuildWWWRequest(jObj.ToString(), timeNow);
+        //Debug.Log("Query complete!");
+
+
+        StartCoroutine(httpScript.WaitForRequest(httpScript.www, callback =>
+        {
+            if (callback != null)
+            {
+                // Put results from callback into a JSON object
+                var results = JSON.Parse(callback);
+                //Debug.Log(results);
+                // Sort results into an Action array
+                actionPoints = new ActionNew[results["Items"].Count];
+                for (int i = 0; i < results["Items"].Count; i++)
+                {
+
+                    //Segregate the death locations based on level number
+
+                    if (results["Items"][i]["level_number"]["S"] == "1")
+                    {
+                        if (results["Items"][i]["description"]["S"] == "RelevantCollected")
+                        {
+                            RCL1 = 1;
+                            ICL1 = 0;
+                        }
+                        else
+                        {
+                            ICL1 = 1;
+                            RCL1 = 0;
+                        }
+                        confusionMatrixL1.Add(new Confusionmatrix(StringToVector3(results["Items"][i]["trap_location"]["S"]), RCL1, ICL1));
+
+                    }
+                    if (results["Items"][i]["level_number"]["S"] == "2")
+                    {
+
+
+
+
+                    }
+                    if (results["Items"][i]["level_number"]["S"] == "3")
+                    {
+
+
+
+                    }
+
+                }
+
+
+
+                if (level1Completion == 0)
+                    isL1CompletionNil = true;
+                else
+                    isL1CompletionNil = false;
+
+                if (level2Completion == 0)
+                    isL2CompletionNil = true;
+                else
+                    isL2CompletionNil = false;
+
+                if (level3Completion == 0)
+                    isL3CompletionNil = true;
+                else
+                    isL3CompletionNil = false;
+
+                if (levelNumber == "level_00")
+                {
+                    LoadStringToVector(collectedDeathLocationL1, cloneDeathLocationOnSceneL1, true, levelNumber);
+                    LoadStringToVector(collectedDeathLocationL1, deathLocationOnSceneL1, false, levelNumber);
+                    ComputeDeathMarkersRatioIndividualLevel(cloneDeathLocationOnSceneL1, level1CompCount, 1);
+
+
+                }
+
+                if (levelNumber == "level_01")
+                {
+
+                }
+
+                if (levelNumber == "level_03")
+                {
+
+                }
+
+
+            }
+        }));
+    }
+
 
     public void ScanGameStatusBasedOnTestSerialId(string myTestID, bool isLoad)
     {
@@ -927,7 +1078,7 @@ public class SankeyEditor : MonoBehaviour
             {
                 // Put results from callback into a JSON object
                 var results = JSON.Parse(callback);
-                //Debug.Log(results);
+                Debug.Log(results);
                 // Sort results into an Action array
                 actionPoints = new ActionNew[results["Items"].Count];
                 for (int i = 0; i < results["Items"].Count; i++)
@@ -989,7 +1140,7 @@ public class SankeyEditor : MonoBehaviour
             {
                 // Put results from callback into a JSON object
                 var results = JSON.Parse(callback);
-                //Debug.Log(results);
+
                 // Sort results into an Action array
                 actionPoints = new ActionNew[results["Items"].Count];
                 for (int i = 0; i < results["Items"].Count; i++)
@@ -1046,21 +1197,21 @@ public class SankeyEditor : MonoBehaviour
                 //gameStatusCount = gameStatusDetails.Count;
                 //PopulateRunIdsDict();
 
-               
-                    LoadStringToVector(collectedDeathLocationIEL1, cloneDeathLocationOnSceneIEL1, true, levelNumber);
-                    LoadStringToVector(collectedDeathLocationIEL1, deathLocationOnSceneIEL1, false, levelNumber);
-                    ComputeDeathMarkersRatioIE(cloneDeathLocationOnSceneIEL1, level1CompCountIE, 1);
-                    //plotCondition = true;
-                    //plotScreenNumber = "1";
 
-                    LoadStringToVector(collectedDeathLocationIEL2, cloneDeathLocationOnSceneIEL2, true, levelNumber);
-                    LoadStringToVector(collectedDeathLocationIEL2, deathLocationOnSceneIEL2, false, levelNumber);
-                    ComputeDeathMarkersRatioIE(cloneDeathLocationOnSceneIEL2, level2CompCountIE, 2);
+                LoadStringToVector(collectedDeathLocationIEL1, cloneDeathLocationOnSceneIEL1, true, levelNumber);
+                LoadStringToVector(collectedDeathLocationIEL1, deathLocationOnSceneIEL1, false, levelNumber);
+                ComputeDeathMarkersRatioIE(cloneDeathLocationOnSceneIEL1, level1CompCountIE, 1);
+                //plotCondition = true;
+                //plotScreenNumber = "1";
 
-                    LoadStringToVector(collectedDeathLocationIEL3, cloneDeathLocationOnSceneIEL3, true, levelNumber);
-                    LoadStringToVector(collectedDeathLocationIEL3, deathLocationOnSceneIEL3, false, levelNumber);
-                    ComputeDeathMarkersRatioIE(cloneDeathLocationOnSceneIEL3, level3CompCountIE, 3);
-         
+                LoadStringToVector(collectedDeathLocationIEL2, cloneDeathLocationOnSceneIEL2, true, levelNumber);
+                LoadStringToVector(collectedDeathLocationIEL2, deathLocationOnSceneIEL2, false, levelNumber);
+                ComputeDeathMarkersRatioIE(cloneDeathLocationOnSceneIEL2, level2CompCountIE, 2);
+
+                LoadStringToVector(collectedDeathLocationIEL3, cloneDeathLocationOnSceneIEL3, true, levelNumber);
+                LoadStringToVector(collectedDeathLocationIEL3, deathLocationOnSceneIEL3, false, levelNumber);
+                ComputeDeathMarkersRatioIE(cloneDeathLocationOnSceneIEL3, level3CompCountIE, 3);
+
             }
         }));
     }
@@ -1314,6 +1465,59 @@ public class LevelStatus
         {
             runId = value;
         }
+    }
+}
+
+public class Confusionmatrix
+{
+    Vector3 position;
+    int RC;
+    int IC;
+
+    public Vector3 Position
+    {
+        get
+        {
+            return position;
+        }
+
+        set
+        {
+            position = value;
+        }
+    }
+
+    public int RC1
+    {
+        get
+        {
+            return RC;
+        }
+
+        set
+        {
+            RC = value;
+        }
+    }
+
+    public int IC1
+    {
+        get
+        {
+            return IC;
+        }
+
+        set
+        {
+            IC = value;
+        }
+    }
+
+    public Confusionmatrix(Vector3 position, int rC, int iC)
+    {
+        this.Position = position;
+        RC1 = rC;
+        IC1 = iC;
     }
 }
 

@@ -58,17 +58,17 @@ maximumAssignments = Number(dat[2]);
         // Add a qualification requirement that the Worker must be either in Canada or the US 
         QualificationRequirements: [
             {
-                QualificationTypeId: '3SHVTVENCCU3LKP8252ZI7VFOC3SJ7',
-                Comparator: 'DoesNotExist',
-                IntegerValues: null,       
-                LocaleValues: null,
+               // QualificationTypeId: '3SHVTVENCCU3LKP8252ZI7VFOC3SJ7',
+                //Comparator: 'DoesNotExist',
+                //IntegerValues: null,       
+                //LocaleValues: null,
 
-                //QualificationTypeId: '00000000000000000071',
-                //Comparator: 'In',
-               // LocaleValues: [
-                 //  { Country: 'US' },
-                 //   { Country: 'CA' },
-               // ],
+                QualificationTypeId: '00000000000000000071',
+                Comparator: 'In',
+                LocaleValues: [
+                { Country: 'US' },
+                { Country: 'CA' },
+                ],
             },
         ],
     };

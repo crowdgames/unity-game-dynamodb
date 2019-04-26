@@ -3,7 +3,7 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -16,9 +16,7 @@ MonoBehaviour:
   version: 1.0.0
   packageName: Integration
   description: PlayFab PlayMaker integration for Save Game Pro
-  changelog: 'Version 1.0.0
-
-    Initial Release'
+  changelog: Initial Release
   contents:
   - BayatGames/SaveGamePro/PlayMaker/Actions/PlayFab
   - BayatGames/SaveGamePro/PlayMaker/Examples/Cloud Saving/Scenes/PlayMaker - Cloud
@@ -26,4 +24,6 @@ MonoBehaviour:
   dependencies:
   - playfab
   - playmaker
+  links: []
+  dependents: []
   installed: 0

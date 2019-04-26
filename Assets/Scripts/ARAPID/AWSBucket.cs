@@ -46,6 +46,7 @@ public class AWSBucket : MonoBehaviour
 
         client.PostObjectAsync(request, (responseObj) =>
         {
+            Debug.Log("Posted to bucket");
             if (responseObj.Exception == null)
             {
                 Debug.Log(responseObj.Request.Key + " posted to bucket " + responseObj.Request.Bucket);

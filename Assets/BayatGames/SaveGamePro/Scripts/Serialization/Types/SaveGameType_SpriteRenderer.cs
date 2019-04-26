@@ -46,9 +46,9 @@ namespace BayatGames.SaveGamePro.Serialization.Types
             writer.WriteProperty("enabled", spriteRenderer.enabled);
             writer.WriteProperty("shadowCastingMode", spriteRenderer.shadowCastingMode);
             writer.WriteProperty("receiveShadows", spriteRenderer.receiveShadows);
-            writer.WriteProperty("material", spriteRenderer.material);
+            writer.WriteProperty("material", spriteRenderer.sharedMaterial);
             writer.WriteProperty("sharedMaterial", spriteRenderer.sharedMaterial);
-            writer.WriteProperty("materials", spriteRenderer.materials);
+            writer.WriteProperty("materials", spriteRenderer.sharedMaterial);
             writer.WriteProperty("sharedMaterials", spriteRenderer.sharedMaterials);
             writer.WriteProperty("lightmapIndex", spriteRenderer.lightmapIndex);
             writer.WriteProperty("realtimeLightmapIndex", spriteRenderer.realtimeLightmapIndex);

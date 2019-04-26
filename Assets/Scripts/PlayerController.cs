@@ -20,6 +20,8 @@ public class PlayerController : MonoBehaviour
     public GameObject itemMismatchUI;
     public Image irrelevantImage;
     public GameObject gameCompleteUI;
+    public Text gameCompletionRelevant;
+    public Text gameCompletionIrrelevant;
 
     //Inventory script
     InventoryManager inventoryManager;
@@ -29,6 +31,10 @@ public class PlayerController : MonoBehaviour
     public GameObject collectable = null;
     string collectableName;
     public CanvasGroup cg;
+
+    public Text locationText;
+    public string scenarioText;
+    public Slider bagStatus;
 
     // Analytics
     Vector3 previousPos;
@@ -96,9 +102,20 @@ public class PlayerController : MonoBehaviour
     ItemsGenerator itemsgenerator;
 
     bool startOver = true;
+
+    public int relevantItemsCollectedInLevel = 0;
+
+    int bagLimit;
+    int currentBagValue;
+    public string description;
+    public Vector3 trapPosition;
+    public int RC, IC, INC, RNC = 0;
     // Use this for initialization
     void Start()
     {
+        bagStatus.value = 0;
+        currentBagValue = 0;
+        scenarioText = locationText.text;
         GamePersistentManager.Instance.startPosition = transform.position;
         inventoryManager = GetComponent<InventoryManager>();
         itemsgenerator = GameObject.FindGameObjectWithTag("ItemsMaster").GetComponent<ItemsGenerator>();
@@ -224,8 +241,9 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-
-        if (GamePersistentManager.Instance.inventoryCount == inventoryLimit)
+        bagLimit = itemsgenerator.UIInventoryLimit;
+        bagStatus.value = currentBagValue;
+        if (itemsgenerator.sceneItems.Length != 0 && (itemsgenerator.sceneItems.Length/2) == relevantItemsCollectedInLevel)
         {
             tChest.GetComponent<SpriteRenderer>().sprite = openChest;
         }
@@ -303,11 +321,23 @@ public class PlayerController : MonoBehaviour
 
             if (itemsgenerator.itemsForCurrentlocation.Contains(objectName))
             {
+                //Adding to inventory
+                //inventoryManager.AddItem(col.gameObject);
 
-                inventoryManager.AddItem(col.gameObject);
                 GamePersistentManager.Instance.inventoryItems.Add(objectName);
                 GamePersistentManager.Instance.inventoryCount += 1;
                 GamePersistentManager.Instance.relevantItemsCollected += 1;
+                relevantItemsCollectedInLevel += 1;
+                RC += 1;
+
+                int bgV = 100 / bagLimit;
+
+                currentBagValue += bgV;
+                col.gameObject.SetActive(false);
+
+                trapPosition = col.transform.position;
+                logger.sendTrapStatus = true;
+                description = "RelevantCollected";
 
                 if (GamePersistentManager.Instance.inventoryCount > inventoryLimit)
                 {
@@ -317,6 +347,7 @@ public class PlayerController : MonoBehaviour
 
             }
 
+            //Irrelevant collected
             if (!itemsgenerator.itemsForCurrentlocation.Contains(objectName))
 
             {
@@ -333,7 +364,10 @@ public class PlayerController : MonoBehaviour
                 GamePersistentManager.Instance.irrelevantItemsCollected += 1;
                 inventoryManager.DisplayHeart(GamePersistentManager.Instance.currentLives);
 
-
+                trapPosition = col.transform.position;
+                logger.sendTrapStatus = true;
+                description = "IrrelevantCollected";
+                IC += 1;
                 if (GamePersistentManager.Instance.currentLives > 0)
                 {
                     itemMismatchUI.SetActive(true);
@@ -398,13 +432,9 @@ public class PlayerController : MonoBehaviour
             canMove = false;
             canDie = false;
 
-            if (GamePersistentManager.Instance.inventoryCount == inventoryLimit)
+            if ((itemsgenerator.sceneItems.Length / 2) == relevantItemsCollectedInLevel)
             {
-                //IncrementRunID and action count to 0
-                //logger.dynode.run_id = logger.dynode.generateID();
-                //logger.dynode.run_count++;
-
-                //logger.dynode.action_count = 0;
+ 
                 if (SceneManager.GetActiveScene().buildIndex == 0)
                 {
                     level1Completion = "Complete";
@@ -432,31 +462,15 @@ public class PlayerController : MonoBehaviour
 
         }
 
-        //if (col.gameObject.tag == "Chest")
-        //{
-        //    canMove = false;
-        //    canDie = false;
-
-        //    if (GamePersistentManager.Instance.inventoryCount == inventoryLimit)
-        //        StartCoroutine(FadeOut());
-
-        //}
-
-        //if ((col.CompareTag("Enemy") || col.CompareTag("Killer")) && canDie)
-        //if ((System.Array.IndexOf(killers, col.tag) > -1) && canDie)
-        //{
-
-        //    jumpPressed = false;
-        //    Debug.Log("Killed by: " + col.tag);
-        //    deathCount++;
-        //    float pos_x = transform.position.x;
-        //    float pos_y = transform.position.y;
-        //    Debug.Log("Tag: " + col.tag);
-        //    lm.Die();
-        //    logger.LogDeath(col.tag, deathCount, pos_x, pos_y);
-        //}
+    
     }
 
+    public void ComputeConfusionMatrix()
+    {
+        int total = bagLimit * 2;
+        INC = total - (RC + IC);
+        RNC = bagLimit - RC;
+    }
 
     public void Damage(int dmg)
     {
@@ -480,6 +494,8 @@ public class PlayerController : MonoBehaviour
         GamePersistentManager.Instance.currentLives = 3;
         GamePersistentManager.Instance.inventoryItems.Clear();
         GamePersistentManager.Instance.inventoryCount = 0;
+
+
         if (SceneManager.GetActiveScene().buildIndex + 1 <= 2)
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         else
@@ -489,6 +505,9 @@ public class PlayerController : MonoBehaviour
                 gameCompletionStatus = "Complete";
                 logger.sendGameCompletionLoggingtoDB = true;
                 gameCompleteUI.SetActive(true);
+                
+                gameCompletionRelevant.text = "Relevant Items Collected: " + GamePersistentManager.Instance.relevantItemsCollected;
+                gameCompletionIrrelevant.text = "Irrelevant Items Collected: " + GamePersistentManager.Instance.irrelevantItemsCollected;
             }
         }
     }

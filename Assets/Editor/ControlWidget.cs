@@ -973,7 +973,7 @@ public class ControlWidget : EditorWindow
     void InitiateTimers()
     {
         timer = new Timer();
-        timer.Interval = 10000;
+        timer.Interval = 5000;
         timer.Enabled = true;
         timer.Elapsed += timer_Elapsed;
         timer.Start();
@@ -1079,10 +1079,14 @@ public class ControlWidget : EditorWindow
             //Scan the death traps here as well
             //sankeyEditor.ScanGameStatus(testIdDB.ToString(), true);
 
-           // sankeyEditor.ScanSurvivalData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,false);
+            // sankeyEditor.ScanSurvivalData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name,false);
 
-            editorPlayerTrajectoryGenrator.ScanAllRunIdsByTestSerialId(testIdDB.ToString());
             //editorPlayerTrajectoryGenrator.ScanAllRunIdsByTestSerialId(testIdDB.ToString());
+            //editorPlayerTrajectoryGenrator.ScanAllRunIdsByTestSerialId(testIdDB.ToString());
+
+
+            //sankeyEditor.ScanSurvivalData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            sankeyEditor.ScanConfusionMatrixData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
 
         }
     }
@@ -1126,7 +1130,7 @@ public class ControlWidget : EditorWindow
             dynode = DynodeObject.AddComponent<DynamoDB.Dynode>();
         }
 
-        httpCalls = GameObject.Find("Httpobject").GetComponent<DynamoDB.DDBHTTP>();
+        httpCalls = GameObject.Find("HttpObject").GetComponent<DynamoDB.DDBHTTP>();
         httpCalls.action = "DynamoDB_20120810.PutItem";
 
 

@@ -4,30 +4,13 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using System;
+using System.Timers;
 
 public class IntegratedCustomWidget : EditorWindow
 {
     SankeyEditor sankeyEditor;
-    //float baseSet = 0.0f;
-    //float minOldx = -15;
-    //float maxOldX = 48;
-    //float minNewX = 0;
-    //float maxNewX = 800;
-    //float minOldY = 0;
-    //float maxOldY = 10;
-    //float minNewY = 200;
-    //float maxNewY = 0;
-
-    //float baseSet = 0.0f;
-    //float minOldx = -14;
-    //float maxOldX = 48;
-    //float minNewX = 0;
-    //float maxNewX = 800;
-    //float minOldY = 0;
-    //float maxOldY = 10;
-    //float minNewY = 400;
-    //float maxNewY = 200;
-
+    Timer timer;
+    bool startQuery = false;
     private void OnGUI()
     {
         MiniatureParameters editorValues = new MiniatureParameters();
@@ -43,7 +26,7 @@ public class IntegratedCustomWidget : EditorWindow
         if (GUILayout.Button("Go to level 1"))
         {
             EditorSceneManager.OpenScene("Assets/Scenes/level_00.unity");
-            sankeyEditor.ScanSurvivalData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            //sankeyEditor.ScanSurvivalData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
 
 
@@ -61,15 +44,24 @@ public class IntegratedCustomWidget : EditorWindow
             // sankeyEditor.ScanSurvivalData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name, false);
         }
         GUILayout.Space(50.0f);
-        if (GUILayout.Button("Generate Survival plots"))
+        if (GUILayout.Button("Initiate"))
         {
-            sankeyEditor.ScanSurvivalDataIE("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            InitiateTimers();
+            //sankeyEditor.ScanSurvivalDataIE("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
 
         }
         if (GUILayout.Button("Generate Survival plot - level specific"))
         {
+         
+            //sankeyEditor.ScanSurvivalData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        }
+
+        if (GUILayout.Button("Cancel"))
+        {
+            if (timer != null)
+                timer.Stop();
             //EditorSceneManager.OpenScene("Assets/Scenes/level_00.unity");
-            sankeyEditor.ScanSurvivalData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            //sankeyEditor.ScanSurvivalData("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
         }
 
 
@@ -226,6 +218,21 @@ public class IntegratedCustomWidget : EditorWindow
     }
 
 
+    void InitiateTimers()
+    {
+        timer = new Timer();
+        timer.Interval = 5000;
+        timer.Enabled = true;
+        timer.Elapsed += timer_Elapsed;
+        timer.Start();
+    }
+
+    void timer_Elapsed(object sender, ElapsedEventArgs e)
+    {
+        startQuery = true;
+    }
+
+
     public float ConvertRange(
         float originalStart, float originalEnd,
         float newStart, float newEnd,
@@ -244,5 +251,18 @@ public class IntegratedCustomWidget : EditorWindow
     public static void DisplayMyWindow()
     {
         GetWindow<IntegratedCustomWidget>();
+    }
+
+
+    public void OnInspectorUpdate()
+    {
+
+        if (startQuery)
+        {
+            startQuery = false;
+            sankeyEditor.ScanSurvivalDataIE("TBD", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+
+        }
+
     }
 }

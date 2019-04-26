@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections;
+﻿using BayatGames.SaveGamePro.Reflection;
+using BayatGames.SaveGamePro.Serialization;
+using BayatGames.SaveGamePro.Serialization.Types;
+using BayatGames.SaveGamePro.Utilities;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using UnityEngine;
 using UnityEditor;
-
-using BayatGames.SaveGamePro.Reflection;
-using BayatGames.SaveGamePro.Serialization;
-using BayatGames.SaveGamePro.Serialization.Types;
-using BayatGames.SaveGamePro.Utilities;
+using UnityEngine;
 
 namespace BayatGames.SaveGamePro.Editor
 {
@@ -38,17 +36,6 @@ namespace BayatGames.SaveGamePro.Editor
         protected string m_AssetPath = "Scripts/Types";
         protected string m_AssemblySearchPattern;
         protected string m_TypeSearchPattern;
-
-        public const string SaveGameTypeManagerPath = "Assets/BayatGames/SaveGamePro/Scripts/Serialization/SaveGameTypeManager.cs";
-        public const string SaveGameTypeManagerTemplatePath = "Assets/BayatGames/SaveGamePro/Editor/Resources/SaveGameTypeManagerTemplate.cs.txt";
-
-        //		public static string SaveGameTypeManagerPath
-        //		{
-        //			get
-        //			{
-        //				return Path.Combine ( Application.dataPath, "BayatGames/SaveGamePro/Scripts/Serialization/SaveGameTypeManager.cs" );
-        //			}
-        //		}
 
         [MenuItem("Window/Save Game Pro/Type Creator")]
         public static void Init()
@@ -639,7 +626,14 @@ namespace BayatGames.SaveGamePro.Editor
         [InitializeOnLoadMethod]
         public static void UpdateTypeManager()
         {
-            string text = File.ReadAllText(SaveGameTypeManagerTemplatePath);
+            string[] files = AssetDatabase.FindAssets("SaveGameTypeManagerTemplate.cs");
+
+            // This means the Unity file system is not yet initialized, we are too early
+            if (files.Length == 0) {
+                return;
+            }
+            string templatePath = AssetDatabase.GUIDToAssetPath(files[0]);
+            string text = File.ReadAllText(templatePath);
             StringBuilder types = new StringBuilder();
             foreach (var item in SaveGameTypeManager.Types)
             {
@@ -649,7 +643,7 @@ namespace BayatGames.SaveGamePro.Editor
                     item.Value.GetType().GetFriendlyName()));
             }
             string contents = text.Replace("#ADDTYPES#", types.ToString());
-            File.WriteAllText(SaveGameTypeManagerPath, contents);
+            File.WriteAllText(templatePath, contents);
         }
 
     }

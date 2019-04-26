@@ -155,7 +155,7 @@ namespace BayatGames.SaveGamePro.Serialization.Formatters.Json
                           type == typeof(byte) || type == typeof(sbyte) || type == typeof(decimal) ||
                           type == typeof(double) || type == typeof(float))
                 {
-                    m_Writer.Write(Convert.ChangeType(value, typeof(string)));
+                    m_Writer.Write(Convert.ChangeType(Convert.ToDecimal(value), typeof(string)));
                 }
                 else if (type == typeof(DictionaryEntry))
                 {

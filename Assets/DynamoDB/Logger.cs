@@ -49,6 +49,7 @@ public class Logger : MonoBehaviour
     public bool sendLevelCompletiontoDB = false;
     public bool sendLevelStatustoDB = false;
     public bool sendGameCompletionLoggingtoDB = false;
+    public bool sendTrapStatus=false;
 
     private PlayerController playerController;
 
@@ -108,7 +109,7 @@ public class Logger : MonoBehaviour
         var Item = new JSONObject();
         Item["player_position"]["S"] = playerPosition;
 
-       // dynode.SendUpdatedPlayerTrajectories(Item);
+         dynode.SendUpdatedPlayerTrajectories(Item);
     }
 
     //void InsertMilestonesData()
@@ -224,14 +225,16 @@ public class Logger : MonoBehaviour
         {
             //Trigger when user completes each level
             sendLevelCompletiontoDB = false;
-          //  dynode.SendLevelCompletionStatus(playerController.level1Completion, playerController.level2Completion, playerController.level3Completion);
+            playerController.ComputeConfusionMatrix();
+            dynode.SendLevelCompletionStatus(playerController.level1Completion, playerController.level2Completion, playerController.level3Completion,
+                playerController.RC.ToString(), playerController.IC.ToString(),playerController.INC.ToString(),playerController.RNC.ToString());
         }
 
         if (sendLevelStatustoDB)
         {
             sendLevelStatustoDB = false;
             int lNumber = SceneManager.GetActiveScene().buildIndex + 1;
-          //  dynode.SendLevelStatus(playerController.transform.position.ToString(), lNumber.ToString());
+            dynode.SendLevelStatus(playerController.transform.position.ToString(), lNumber.ToString());
         }
 
         if (sendGameCompletionLoggingtoDB)
@@ -239,8 +242,15 @@ public class Logger : MonoBehaviour
 
             sendGameCompletionLoggingtoDB = false;
 
-            //dynode.SendMasterGameCompletionStatus(playerController.gameCompletionStatus, playerController.transform.position.ToString(), gameStartTime.ToString());
+             dynode.SendMasterGameCompletionStatus(playerController.gameCompletionStatus, playerController.transform.position.ToString(), gameStartTime.ToString());
 
+        }
+
+        if (sendTrapStatus)
+        {
+            int lNumber = SceneManager.GetActiveScene().buildIndex + 1;
+            sendTrapStatus = false;
+            dynode.SendTrapStatus(playerController.trapPosition.ToString(), lNumber.ToString(),playerController.description);
         }
         //updated milestones
 

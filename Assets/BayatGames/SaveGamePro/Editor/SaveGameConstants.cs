@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEditor;
 
 namespace BayatGames.SaveGamePro.Editor
 {
@@ -8,9 +6,21 @@ namespace BayatGames.SaveGamePro.Editor
     public static class SaveGameConstants
     {
 
-        public const string BayatGamesFolder = "Assets/BayatGames";
-        public const string SaveGameProFolder = BayatGamesFolder + "/SaveGamePro";
-        public const string IntegrationFolder = SaveGameProFolder + "/Integrations";
+        private static string _BayatGamesFolder;
+
+        public static string BayatGamesFolder
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_BayatGamesFolder))
+                {
+                    _BayatGamesFolder = AssetDatabase.GUIDToAssetPath(AssetDatabase.FindAssets("BayatGames")[0]);
+                }
+                return _BayatGamesFolder;
+            }
+        }
+        public static string SaveGameProFolder = BayatGamesFolder + "/SaveGamePro";
+        public static string IntegrationFolder = SaveGameProFolder + "/Integrations";
 
     }
 

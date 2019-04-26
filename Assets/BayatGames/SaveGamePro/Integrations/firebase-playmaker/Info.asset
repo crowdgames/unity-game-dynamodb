@@ -3,8 +3,9 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -13,12 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   identifier: firebase-playmaker
   title: Firebase PlayMaker
-  version: 1.0.0
+  version: 1.1.2
   packageName: Integration
   description: Firebase PlayMaker integration for Save Game Pro
-  changelog: 'Version 1.0.0
-
-    Initial Release'
+  changelog: Added & Fixed C# Async/Await
   contents:
   - BayatGames/SaveGamePro/PlayMaker/Actions/Firebase
   - BayatGames/SaveGamePro/PlayMaker/Examples/Cloud Saving/Scenes/PlayMaker - Cloud
@@ -26,4 +25,6 @@ MonoBehaviour:
   dependencies:
   - firebase
   - playmaker
+  links: []
+  dependents: []
   installed: 0

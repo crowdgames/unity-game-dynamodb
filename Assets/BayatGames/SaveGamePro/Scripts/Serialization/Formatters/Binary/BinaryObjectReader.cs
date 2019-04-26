@@ -121,6 +121,7 @@ namespace BayatGames.SaveGamePro.Serialization.Formatters.Binary
         /// <param name="type">Type.</param>
         public virtual object Read(Type type)
         {
+            Type nullableType = null;
             object result = null;
             if (type == null || !m_Reader.ReadBoolean())
             {
@@ -128,6 +129,11 @@ namespace BayatGames.SaveGamePro.Serialization.Formatters.Binary
             }
             else
             {
+                if (Nullable.GetUnderlyingType(type) != null)
+                {
+                    nullableType = type;
+                    type = Nullable.GetUnderlyingType(type);
+                }
                 bool isPrimitive = false;
                 bool isEnum = false;
                 bool isSerializable = false;
@@ -434,6 +440,11 @@ namespace BayatGames.SaveGamePro.Serialization.Formatters.Binary
                 (result as IDeserializationCallback).OnDeserialization(this);
             }
 #endif
+            if (nullableType != null)
+            {
+                Type genericType = type.GetNullableType();
+                result = Activator.CreateInstance(genericType, result);
+            }
             return result;
         }
 
@@ -608,7 +619,7 @@ namespace BayatGames.SaveGamePro.Serialization.Formatters.Binary
             }
             else
             {
-                ReadObject(type, value);
+                ReadIntoObject(type, value);
             }
         }
 
@@ -852,12 +863,60 @@ namespace BayatGames.SaveGamePro.Serialization.Formatters.Binary
         }
 
         /// <summary>
+        /// Reads into the object.
+        /// </summary>
+        /// <returns>The object.</returns>
+        /// <param name="type">Type.</param>
+        protected virtual void ReadIntoObject(Type type, object result)
+        {
+            if (result != null)
+            {
+                if (result is ISavable)
+                {
+                    ISavable savable = result as ISavable;
+                    savable.OnRead(this);
+                }
+#if !UNITY_WSA || !UNITY_WINRT
+                else if (result is ISerializable)
+                {
+                    int count = m_Reader.ReadInt32();
+                    for (int i = 0; i < count; i++)
+                    {
+                        string name = m_Reader.ReadString();
+                        FieldInfo field = type.GetSavableField(name);
+                        if (field != null)
+                        {
+                            object fieldValue = field.GetValue(result);
+                            ReadInto(fieldValue);
+                            continue;
+                        }
+                        PropertyInfo property = type.GetSavableProperty(name);
+                        if (property != null)
+                        {
+                            object propertyValue = property.GetValue(result, null);
+                            ReadInto(propertyValue);
+                            continue;
+                        }
+                    }
+                }
+#endif
+                else
+                {
+                    ReadIntoSavableMembers(result, type);
+                }
+            }
+        }
+
+        /// <summary>
         /// Reads the savable members.
         /// </summary>
         /// <param name="obj">Object.</param>
         /// <param name="type">Type.</param>
         public virtual void ReadSavableMembers(object obj, Type type)
         {
+
+
+            // Reading fields
             int count = m_Reader.ReadInt32();
             for (int i = 0; i < count; i++)
             {
@@ -875,6 +934,8 @@ namespace BayatGames.SaveGamePro.Serialization.Formatters.Binary
                     continue;
                 }
             }
+
+            // Reading properties
             count = m_Reader.ReadInt32();
             for (int i = 0; i < count; i++)
             {
@@ -889,6 +950,85 @@ namespace BayatGames.SaveGamePro.Serialization.Formatters.Binary
                 if (property != null)
                 {
                     property.SetValue(obj, Read(property.PropertyType), null);
+                    continue;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Reads into the savable members.
+        /// </summary>
+        /// <param name="obj">Object.</param>
+        /// <param name="type">Type.</param>
+        public virtual void ReadIntoSavableMembers(object obj, Type type)
+        {
+
+            // Reading fields
+            int count = m_Reader.ReadInt32();
+            for (int i = 0; i < count; i++)
+            {
+                string name = m_Reader.ReadString();
+                FieldInfo field = type.GetSavableField(name);
+                if (field != null)
+                {
+                    object fieldValue = field.GetValue(obj);
+                    if (fieldValue == null)
+                    {
+                        field.SetValue(obj, Read(field.FieldType));
+                    }
+                    else
+                    {
+                        ReadInto(fieldValue);
+                    }
+                    continue;
+                }
+                PropertyInfo property = type.GetSavableProperty(name);
+                if (property != null)
+                {
+                    object propertyValue = property.GetValue(obj, null);
+                    if (propertyValue == null)
+                    {
+                        property.SetValue(obj, Read(property.PropertyType), null);
+                    }
+                    else
+                    {
+                        ReadInto(propertyValue);
+                    }
+                    continue;
+                }
+            }
+
+            // Reading properties
+            count = m_Reader.ReadInt32();
+            for (int i = 0; i < count; i++)
+            {
+                string name = m_Reader.ReadString();
+                FieldInfo field = type.GetSavableField(name);
+                if (field != null)
+                {
+                    object fieldValue = field.GetValue(obj);
+                    if (fieldValue == null)
+                    {
+                        field.SetValue(obj, Read(field.FieldType));
+                    }
+                    else
+                    {
+                        ReadInto(fieldValue);
+                    }
+                    continue;
+                }
+                PropertyInfo property = type.GetSavableProperty(name);
+                if (property != null)
+                {
+                    object propertyValue = property.GetValue(obj, null);
+                    if (propertyValue == null)
+                    {
+                        property.SetValue(obj, Read(property.PropertyType), null);
+                    }
+                    else
+                    {
+                        ReadInto(propertyValue);
+                    }
                     continue;
                 }
             }
